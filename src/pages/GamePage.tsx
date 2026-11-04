@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getActorId, getPlayer } from '../game';
 import { Hand } from '../features/controls/Hand';
 import {
@@ -15,10 +15,15 @@ import {
   TurnControls,
   WinnerOverlay,
 } from '../features/game-ui';
+import { useFitScale } from '../shared/hooks/useFitScale';
 import { useGameStore } from '../store/useGameStore';
+
+/** Размер стола вместе с местами игроков вокруг него; при меньшем окне стол уменьшается. */
+const TABLE_AREA = { width: 1400, height: 1000 };
 
 export function GamePage() {
   const game = useGameStore((store) => store.game);
+
   if (!game) return <GameSetupScreen />;
   return <GameTable />;
 }
@@ -28,6 +33,13 @@ function GameTable() {
   const seatedPlayerId = useGameStore((store) => store.seatedPlayerId);
   const dispatch = useGameStore((store) => store.dispatch);
   const [isSidKetchumOpen, setSidKetchumOpen] = useState(false);
+  const tableScale = useFitScale(TABLE_AREA.width, TABLE_AREA.height);
+
+  // Пока открыт игровой стол, страница не прокручивается
+  useEffect(() => {
+    document.documentElement.classList.add('game-screen');
+    return () => document.documentElement.classList.remove('game-screen');
+  }, []);
 
   const actorId = getActorId(game);
   // Пока за экраном не тот, чьё решение нужно, руки и кнопки скрыты
@@ -36,12 +48,14 @@ function GameTable() {
 
   return (
     <div
-      className="relative flex min-h-screen w-full items-center justify-center bg-cover bg-center bg-no-repeat"
+      className="fixed inset-0 flex items-center justify-center overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/images/game-bg.png')" }}
     >
       <div className="absolute inset-0 bg-black/20" />
       <SheriffCornerBadge players={game.players} />
-      <GameTableArena players={game.players} activePlayerId={game.activePlayerId} />
+      <div style={{ transform: `scale(${tableScale})` }}>
+        <GameTableArena players={game.players} activePlayerId={game.activePlayerId} />
+      </div>
 
       <div className="absolute left-8 top-28 z-30 w-80 rounded-2xl bg-black/55 p-3 backdrop-blur-sm">
         <GameLog />
