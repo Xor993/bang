@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Yeast 22';
+  src: url('shared/fonts/Yeast22.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --color-black: black;
+  --site-max-width: 1440px;
+  --site-x-padding: 50px;
+}
+
+@theme {
+  --color-bang-bg: #F9EFE8;
+  --color-bang-brown: #6B4A2F;
+  --color-bang-red: #6A1F05;
+  --color-bang-plate: #D3C4A6;
+  --color-bang-sand: #ECDFC6;
+  --color-bang-dark-red: #501601;
+  
+  --font-title: "Yeast 22", cursive;
+  --font-body: "Underdog", sans-serif;
+}
+
+html, body {
+  overscroll-behavior-y: none;
+  scrollbar-gutter: stable;
+}
+
+@layer components {
+  .site-container {
+    margin-inline: auto;
+    width: 100%;
+    max-width: var(--site-max-width);
+    padding-inline: var(--site-x-padding);
+  }
+
+  .site-section {
+    margin-inline: auto;
+    display: flex;
+    width: 100%;
+    max-width: var(--site-max-width);
+    padding-inline: 100px;
+    padding-block: 5rem;
+  }
+}
