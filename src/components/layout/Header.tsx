@@ -22,8 +22,8 @@ function HeaderNav() {
     const nav = navRef.current;
     if (!nav) return;
 
+    // Вне пунктов меню индикатор скрыт — ширина обнуляется при рендере
     if (activeIndex < 0) {
-      setIndicator((prev) => ({ ...prev, width: 0 }));
       prevPathRef.current = location.pathname;
       return;
     }
@@ -53,7 +53,7 @@ function HeaderNav() {
         className="pointer-events-none absolute rounded-full bg-[#63472D]"
         animate={{
           left: indicator.left,
-          width: indicator.width,
+          width: activeIndex < 0 ? 0 : indicator.width,
           height: indicator.height,
           top: indicator.top,
         }}

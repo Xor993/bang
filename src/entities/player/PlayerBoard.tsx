@@ -1,7 +1,8 @@
-import type { Player } from '../../shared/types/game';
+import { isInJail, ROLE_LABELS } from '../../game';
+import type { Player } from '../../game';
 import { BoardCardMini } from './BoardCardMini';
 import { HealthBullets } from './HealthBullets';
-import { isRoleRevealed, ROLE_LABELS, splitPlayerEquipment } from './playerBoardUtils';
+import { isRoleRevealed, splitInPlayCards } from './playerBoardUtils';
 
 type Props = {
   player: Player;
@@ -12,7 +13,7 @@ type Props = {
 };
 
 export function PlayerBoard({ player, isActivePlayer, isValidTarget, compact, onClick }: Props) {
-  const { weapon, tableEquipment } = splitPlayerEquipment(player.equipment);
+  const { weapon, tableCards } = splitInPlayCards(player.inPlay);
   const handPreviewCount = Math.min(player.hand.length, 3);
   const hiddenHandCount = Math.max(0, player.hand.length - 3);
   const roleRevealed = isRoleRevealed(player);
@@ -24,14 +25,14 @@ export function PlayerBoard({ player, isActivePlayer, isValidTarget, compact, on
       }`}
       onClick={onClick}
     >
-      {tableEquipment.length > 0 && (
+      {tableCards.length > 0 && (
         <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 flex -translate-x-1/2 items-end justify-center gap-1 px-1">
-          {tableEquipment.map((item, index) => (
+          {tableCards.map((item, index) => (
             <div
               key={item.id}
               className="pointer-events-auto transition-transform hover:-translate-y-1"
               style={{
-                transform: `rotate(${(index - (tableEquipment.length - 1) / 2) * 8}deg) translateY(${Math.abs(index - (tableEquipment.length - 1) / 2) * -2}px)`,
+                transform: `rotate(${(index - (tableCards.length - 1) / 2) * 8}deg) translateY(${Math.abs(index - (tableCards.length - 1) / 2) * -2}px)`,
                 zIndex: index,
               }}
             >
@@ -79,10 +80,9 @@ export function PlayerBoard({ player, isActivePlayer, isValidTarget, compact, on
               <BoardCardMini
                 kind="character"
                 characterId={player.characterId}
-                label={player.character}
                 compact={compact}
               />
-              <HealthBullets currentHp={player.currentHp} maxHp={player.maxHp} compact={compact} />
+              <HealthBullets currentHp={player.hp} maxHp={player.maxHp} compact={compact} />
             </div>
 
             {weapon ? (
@@ -121,7 +121,7 @@ export function PlayerBoard({ player, isActivePlayer, isValidTarget, compact, on
           )}
         </div>
 
-        {player.isInJail && (
+        {isInJail(player) && (
           <div
             className={`absolute -right-1 -top-1 rounded-full border-2 border-neutral-400 bg-neutral-800 font-body font-bold text-white ${
               compact ? 'px-1 py-0 text-[7px]' : 'px-1.5 py-0.5 text-[8px]'

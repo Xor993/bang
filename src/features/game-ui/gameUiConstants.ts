@@ -23,7 +23,7 @@ export type PlayerStationPlacement = {
   style?: CSSProperties;
 };
 
-/** Раскладка мест за столом: пресеты 2–4 игрока или кольцо для тестов с большим числом персонажей. */
+/** Раскладка мест за столом: пресет для 4 игроков, для 5–7 — по эллипсу вокруг стола. */
 export const getPlayerStationPlacement = (
   playerCount: number,
   relativeIndex: number,
@@ -33,13 +33,13 @@ export const getPlayerStationPlacement = (
     return { className: preset };
   }
 
-  const radiusX = 490;
-  const radiusY = 255;
+  const radiusX = 540;
+  const radiusY = 300;
   const step = (2 * Math.PI) / playerCount;
   const angle = relativeIndex * step + Math.PI / 2;
   const x = Math.cos(angle) * radiusX;
   const y = Math.sin(angle) * radiusY;
-  const scale = playerCount > 10 ? 'scale-[0.72]' : playerCount > 6 ? 'scale-90' : '';
+  const scale = playerCount > 6 ? 'scale-90' : '';
 
   return {
     className: `left-1/2 top-1/2 ${scale}`.trim(),

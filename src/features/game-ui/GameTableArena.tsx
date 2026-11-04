@@ -1,4 +1,4 @@
-import type { Player } from '../../shared/types/game';
+import type { Player } from '../../game';
 import { PlayerStation } from '../../entities/player/PlayerStation';
 import { getPlayerStationPlacement } from './gameUiConstants';
 import { DeckDrawPile } from './DeckDrawPile';
@@ -27,7 +27,7 @@ export function GameTableArena({ players, activePlayerId }: Props) {
 
       {positionedPlayers.map(({ player, relativeIndex }) => {
         const { className, style } = getPlayerStationPlacement(players.length, relativeIndex);
-        const isCompact = players.length > 6;
+        const isCompact = players.length > 4;
         return (
           <PlayerStation
             key={player.id}

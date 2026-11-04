@@ -1,4 +1,4 @@
-import type { Player } from '../../shared/types/game';
+import type { Player } from '../../game';
 
 type Props = {
   players: Player[];

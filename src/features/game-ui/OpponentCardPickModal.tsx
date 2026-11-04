@@ -1,43 +1,36 @@
-import type { Player } from '../../shared/types/game';
+import type { OpponentCardPrompt, Player } from '../../game';
 import { Card as GameCard } from '../../entities/card/Card';
 import { DOCK_CARD_CLASS } from './GameActionPanel';
 import { ActionDockPanel, DockButton } from './ActionDock';
 
 type Props = {
-  title: string;
-  visiblePlayer: Player;
-  handButtonLabel: string;
-  onPickHand: () => void;
-  onPickEquipment: (equipmentCardId: string) => void;
+  prompt: OpponentCardPrompt;
+  victim: Player;
+  onPick: (zone: 'hand' | 'inPlay', cardId?: string) => void;
 };
 
-export function OpponentCardPickModal({
-  title,
-  visiblePlayer,
-  handButtonLabel,
-  onPickHand,
-  onPickEquipment,
-}: Props) {
+/** «Паника!» / «Красотка»: случайная карта с руки или выбранная карта из игры. */
+export function OpponentCardPickModal({ prompt, victim, onPick }: Props) {
+  const verb = prompt.cardKind === 'PANIC' ? 'Забрать' : 'Сбросить';
+
   return (
     <ActionDockPanel>
-      <p className="font-body text-sm uppercase tracking-[0.2em] text-white/70">{title}</p>
+      <p className="font-body text-sm uppercase tracking-[0.2em] text-white/70">
+        {verb} карту у игрока {victim.name}
+      </p>
 
-      {visiblePlayer.hand.length > 0 && (
+      {victim.hand.length > 0 && (
         <div className="mt-3 flex justify-end">
-          <DockButton onClick={onPickHand}>{handButtonLabel}</DockButton>
+          <DockButton onClick={() => onPick('hand')}>
+            {verb} случайную с руки ({victim.hand.length})
+          </DockButton>
         </div>
       )}
 
-      {visiblePlayer.equipment.length > 0 && (
+      {victim.inPlay.length > 0 && (
         <div className="mt-3 flex flex-wrap justify-end gap-2">
-          {visiblePlayer.equipment.map((card) => (
-            <GameCard
-              key={card.id}
-              card={card}
-              compact
-              className={DOCK_CARD_CLASS}
-              onClick={() => onPickEquipment(card.id)}
-            />
+          {victim.inPlay.map((card) => (
+            <GameCard key={card.id} card={card} compact className={DOCK_CARD_CLASS} onClick={() => onPick('inPlay', card.id)} />
           ))}
         </div>
       )}

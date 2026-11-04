@@ -1,15 +1,14 @@
 import type { ReactNode } from 'react';
-import type { Card, CharacterId, Role } from '../../shared/types/game';
-import { getSuitSymbol } from '../../shared/cardUtils';
-import { CHARACTERS, getCharacterArtSrc } from '../../shared/data/characters';
+import { getCharacter, getCharacterArtSrc, getSuitSymbol, ROLE_LABELS } from '../../game';
+import type { Card, CharacterId, Role } from '../../game';
+import { getCardGlyph } from '../../shared/cardArt';
 import { HoverHint } from '../../features/game-ui/tooltip/HoverHint';
-import { EQUIPMENT_ICONS, ROLE_ICONS, ROLE_LABELS } from './playerBoardUtils';
+import { ROLE_ICONS } from './playerBoardUtils';
 
 type MiniKind = 'role' | 'role-hidden' | 'character' | 'weapon' | 'equipment' | 'hand-back' | 'empty';
 
 type Props = {
   kind: MiniKind;
-  label?: string;
   role?: Role;
   characterId?: CharacterId;
   card?: Card;
@@ -22,7 +21,7 @@ const wrapHint = (node: ReactNode, enabled: boolean, content: Parameters<typeof 
   return <HoverHint content={content}>{node}</HoverHint>;
 };
 
-export function BoardCardMini({ kind, label, role, characterId, card, compact, title }: Props) {
+export function BoardCardMini({ kind, role, characterId, card, compact, title }: Props) {
   const sizeClass = compact ? 'h-[52px] w-[38px]' : 'h-[68px] w-[48px]';
   const textSize = compact ? 'text-[6px]' : 'text-[7px]';
 
@@ -91,10 +90,8 @@ export function BoardCardMini({ kind, label, role, characterId, card, compact, t
   }
 
   if (kind === 'character') {
-    const character = characterId ? CHARACTERS.find((entry) => entry.id === characterId) : undefined;
-    const characterName = character?.name ?? label ?? 'Персонаж';
-    const characterHp = character?.hp ?? 4;
-    const characterDescription = character?.description ?? 'Описание персонажа недоступно.';
+    const character = characterId ? getCharacter(characterId) : undefined;
+    const characterName = character?.name ?? 'Персонаж';
     const characterArtSrc = characterId ? getCharacterArtSrc(characterId) : undefined;
     const characterSizeClass = compact ? 'h-[103px] w-[72px]' : 'h-[139px] w-[96px]';
 
@@ -113,33 +110,27 @@ export function BoardCardMini({ kind, label, role, characterId, card, compact, t
           </div>
         )}
       </div>,
-      Boolean(characterId),
-      {
-        type: 'character',
-        characterId: characterId!,
-        name: characterName,
-        hp: characterHp,
-        description: characterDescription,
-      },
+      Boolean(character),
+      { type: 'character', characterId: characterId! },
     );
   }
 
   const isWeapon = kind === 'weapon';
-  const icon = card ? (EQUIPMENT_ICONS[card.effectType] ?? '🃏') : '🔫';
+  const icon = card ? getCardGlyph(card.kind) : '🔫';
 
   const cardNode = (
     <div
       className={`${sizeClass} flex flex-col items-center justify-between rounded-md border-2 border-sky-700 bg-gradient-to-b from-sky-50 to-sky-100 p-0.5 shadow-md`}
     >
       <span className={`font-body font-bold uppercase leading-tight text-sky-950 ${textSize}`}>
-        {card?.name ?? label}
+        {card?.name}
       </span>
       <span className={compact ? 'text-sm' : 'text-base'}>{icon}</span>
       <div className={`flex w-full items-center justify-between font-bold text-sky-900 ${compact ? 'text-[6px]' : 'text-[7px]'}`}>
         {card && (
           <>
             <span>
-              {card.value}
+              {card.rank}
               {getSuitSymbol(card.suit)}
             </span>
             {isWeapon && card.range != null && <span>R{card.range}</span>}

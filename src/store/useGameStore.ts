@@ -1,29 +1,49 @@
 import { create } from 'zustand';
-import { INITIAL_GAME_STATE } from './initialState';
-import type { GameStore } from './types';
-import { createInitGameActions } from './actions/initGame';
-import { createUiActions } from './actions/uiActions';
-import { createTurnActions } from './actions/turnActions';
-import { createDrawPhaseActions } from './actions/drawPhaseActions';
-import { createCheckActions } from './actions/checkActions';
-import { createResolvePendingAction } from './actions/resolvePendingAction';
-import { createCardChoiceActions } from './actions/cardChoiceActions';
-import { createCharacterActions } from './actions/characterActions';
-import { createPlayCardAction } from './actions/playCardAction';
+import { createGame, gameReducer, getActorId } from '../game';
+import type { GameAction, GameState } from '../game';
 
-export type { GameActions, GameStore } from './types';
+/**
+ * Хранилище экрана игры. Все правила — в движке (src/game), здесь только:
+ * - текущее состояние партии;
+ * - кто сейчас сидит за экраном (игра «hot seat» на одном устройстве);
+ * - карта, для которой игрок выбирает цель.
+ */
+interface GameStore {
+  game: GameState | null;
+  /** Игрок, подтвердивший, что сейчас за экраном. Пока это не тот, чьё решение нужно, руки скрыты. */
+  seatedPlayerId: string | null;
+  targetingCardId: string | null;
 
-export const useGameStore = create<GameStore>((set, get) =>
-  ({
-    ...INITIAL_GAME_STATE,
-    ...createInitGameActions(set, get),
-    ...createUiActions(set, get),
-    ...createTurnActions(set, get),
-    ...createDrawPhaseActions(set, get),
-    ...createCheckActions(set, get),
-    ...createResolvePendingAction(set, get),
-    ...createCardChoiceActions(set, get),
-    ...createCharacterActions(set, get),
-    ...createPlayCardAction(set, get),
-  }) as GameStore,
-);
+  startGame: (playerNames: string[]) => void;
+  leaveGame: () => void;
+  dispatch: (action: GameAction) => void;
+  takeSeat: () => void;
+  setTargeting: (cardId: string | null) => void;
+}
+
+export const useGameStore = create<GameStore>((set) => ({
+  game: null,
+  seatedPlayerId: null,
+  targetingCardId: null,
+
+  startGame: (playerNames) => set({ game: createGame(playerNames), seatedPlayerId: null, targetingCardId: null }),
+
+  leaveGame: () => set({ game: null, seatedPlayerId: null, targetingCardId: null }),
+
+  dispatch: (action) =>
+    set((store) => (store.game ? { game: gameReducer(store.game, action), targetingCardId: null } : store)),
+
+  takeSeat: () => set((store) => (store.game ? { seatedPlayerId: getActorId(store.game) } : store)),
+
+  setTargeting: (cardId) => set({ targetingCardId: cardId }),
+}));
+
+/** Партия для компонентов, которые показываются только во время игры. */
+export const useGame = (): GameState => {
+  const game = useGameStore((store) => store.game);
+  if (!game) throw new Error('useGame вызван вне партии');
+  return game;
+};
+
+/** Игрок, чьё решение ждёт игра. */
+export const useActorId = () => getActorId(useGame());

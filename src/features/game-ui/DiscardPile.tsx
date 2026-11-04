@@ -1,11 +1,12 @@
-import { useGameStore } from '../../store/useGameStore';
+import { getTopOfDiscard } from '../../game';
+import { useGame } from '../../store/useGameStore';
 import { Card as GameCard } from '../../entities/card/Card';
 
-/** Верх сброса — `discard[0]` (как в сторе: новые карты в начало массива). */
+/** Стопка сброса: видна только верхняя карта. */
 export function DiscardPile() {
-  const discard = useGameStore((s) => s.discard);
-  const top = discard[0];
-  const count = discard.length;
+  const game = useGame();
+  const top = getTopOfDiscard(game);
+  const count = game.discard.length;
 
   return (
     <div className="flex flex-col items-center gap-1">

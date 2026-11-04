@@ -229,7 +229,7 @@ export function RulesPage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr]">
             <img
               src="/images/rules/character-rose_doolan.svg"
-              alt="Роза Дулан"
+              alt="Хладнокровная Рози"
               className="mx-auto h-[320px] w-auto rounded-[20px] object-contain shadow-lg"
             />
             <div>

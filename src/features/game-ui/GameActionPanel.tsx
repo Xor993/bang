@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import type { Card, Player } from '../../shared/types/game';
+import { getCharacter } from '../../game';
+import type { Card, Player } from '../../game';
 import { Card as GameCard } from '../../entities/card/Card';
-import { ActionDockButtons, ActionDockPanel, DockButton } from './ActionDock';
+import { ActionDockPanel } from './ActionDock';
 
-const DOCK_CARD_CLASS = '!h-32 !w-20 hover:-translate-y-2';
+export const DOCK_CARD_CLASS = '!h-32 !w-20 hover:-translate-y-2';
 
 type PlayerPanelHeaderProps = {
   visiblePlayer: Player;
@@ -20,16 +21,11 @@ type CardChoicePanelProps = {
   className?: string;
 };
 
-type AcceptActionPanelProps = {
-  onAccept: () => void;
-  label?: ReactNode;
-};
-
 export function PlayerPanelHeader({ visiblePlayer, description }: PlayerPanelHeaderProps) {
   return (
     <>
       <p className="font-body text-sm uppercase tracking-[0.2em] text-white/70">
-        {visiblePlayer.name}, {visiblePlayer.character}
+        {visiblePlayer.name}, {getCharacter(visiblePlayer.characterId).name}
       </p>
       {description && <p className="mt-1 font-body text-xs text-white/60">{description}</p>}
     </>
@@ -63,13 +59,3 @@ export function CardChoicePanel({
     </ActionDockPanel>
   );
 }
-
-export function AcceptActionPanel({ onAccept, label = 'Принять урон' }: AcceptActionPanelProps) {
-  return (
-    <ActionDockButtons>
-      <DockButton onClick={onAccept}>{label}</DockButton>
-    </ActionDockButtons>
-  );
-}
-
-export { DOCK_CARD_CLASS };

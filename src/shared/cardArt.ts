@@ -1,49 +1,29 @@
-import type { EffectType } from './types/game';
+import type { CardKind } from '../game';
 
-export const EFFECT_CARD_ART: Partial<Record<EffectType, string>> = {
+/** Значок карты, пока нет отдельных иллюстраций. */
+const CARD_GLYPHS: Record<CardKind, string> = {
+  BANG: '🔫',
+  MISSED: '🛡️',
+  BEER: '🍺',
+  SALOON: '🍻',
+  PANIC: '😱',
+  CAT_BALOU: '💋',
+  STAGECOACH: '🚌',
+  WELLS_FARGO: '🏦',
+  GATLING: '💥',
+  INDIANS: '🏹',
+  DUEL: '⚔️',
+  GENERAL_STORE: '🏪',
+  BARREL: '🛢',
+  MUSTANG: '🐎',
+  SCOPE: '🎯',
+  JAIL: '⛓',
+  DYNAMITE: '🧨',
+  VOLCANIC: '🔫',
+  SCHOFIELD: '🔫',
+  REMINGTON: '🔫',
+  CARABINE: '🔫',
+  WINCHESTER: '🔫',
 };
 
-export const getCardArtSrc = (effectType: EffectType) => EFFECT_CARD_ART[effectType];
-
-export const getEffectGlyphEmoji = (effectType: EffectType): string => {
-  switch (effectType) {
-    case 'BANG':
-      return '🔫';
-    case 'MISSED':
-      return '🛡️';
-    case 'BEER':
-      return '🍺';
-    case 'WEAPON':
-      return '🔫';
-    case 'BARREL':
-      return '🛢';
-    case 'MUSTANG':
-      return '🐎';
-    case 'SCOPE':
-      return '🎯';
-    case 'JAIL':
-      return '⛓';
-    case 'DYNAMITE':
-      return '🧨';
-    case 'GATLING':
-      return '💥';
-    case 'INDIANS':
-      return '🏹';
-    case 'DUEL':
-      return '⚔️';
-    case 'PANIC':
-      return '😱';
-    case 'CAT_BALOU':
-      return '💋';
-    case 'STAGECOACH':
-      return '🚌';
-    case 'WELLS_FARGO':
-      return '🏦';
-    case 'GENERAL_STORE':
-      return '🏪';
-    case 'SALOON':
-      return '🍻';
-    default:
-      return '🃏';
-  }
-};
+export const getCardGlyph = (kind: CardKind) => CARD_GLYPHS[kind];

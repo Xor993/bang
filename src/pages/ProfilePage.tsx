@@ -1,6 +1,8 @@
 import { BangButton } from '../shared/ui/BangButton';
 import { PageHeader } from '../components/layout/PageHeader';
 import { MOCK_GAME_HISTORY } from '../shared/data/mockGameHistory';
+import { getCharacter, getCharacterArtSrc, ROLE_LABELS } from '../game';
+import type { CharacterId } from '../game';
 
 const STATS = [
   { value: '128', label: 'сыграно партий' },
@@ -24,28 +26,25 @@ const ACHIEVEMENTS = [
   },
 ] as const;
 
-const FAVORITE_CHARACTERS = [
+const FAVORITE_CHARACTERS: { characterId: CharacterId; note: string }[] = [
   {
-    name: 'Роза Дулан',
-    artSrc: '/images/rules/character-rose_doolan.svg',
+    characterId: 'rose_doolan',
     note: 'Любимый стиль: дальние перестрелки и контроль дистанции.',
   },
   {
-    name: 'Малыш Вилли',
-    artSrc: '/images/rules/character-willy_the_kid.svg',
+    characterId: 'willy_the_kid',
     note: 'Любимый стиль: агрессия и серия Бэнгов за ход.',
   },
   {
-    name: 'Кит Карсон',
-    artSrc: '/images/rules/character-kit_carson.svg',
+    characterId: 'kit_carson',
     note: 'Любимый стиль: гибкий набор и тактический добор.',
   },
-] as const;
+];
 
 const RECENT_MATCHES = MOCK_GAME_HISTORY.slice(0, 3).map((match) => ({
   result: match.result === 'win' ? 'Победа' : 'Поражение',
-  role: match.roleLabel,
-  character: match.characterName,
+  role: ROLE_LABELS[match.role],
+  character: getCharacter(match.characterId).name,
   when: match.playedAt,
 }));
 
@@ -147,13 +146,13 @@ export function ProfilePage() {
         <SectionCard title="Любимые персонажи">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {FAVORITE_CHARACTERS.map((character) => (
-              <div key={character.name} className="rounded-[26px] border border-bang-plate bg-[#fffdf8] p-5">
+              <div key={character.characterId} className="rounded-[26px] border border-bang-plate bg-[#fffdf8] p-5">
                 <img
-                  src={character.artSrc}
-                  alt={character.name}
+                  src={getCharacterArtSrc(character.characterId)}
+                  alt={getCharacter(character.characterId).name}
                   className="mx-auto h-[280px] w-auto rounded-[18px] object-contain shadow-lg"
                 />
-                <h3 className="mt-5 font-title text-[34px] text-bang-red">{character.name}</h3>
+                <h3 className="mt-5 font-title text-[34px] text-bang-red">{getCharacter(character.characterId).name}</h3>
                 <p className="mt-2 text-[18px] leading-[1.5]">{character.note}</p>
               </div>
             ))}

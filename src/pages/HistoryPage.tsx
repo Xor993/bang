@@ -1,6 +1,6 @@
 import { BangButton } from '../shared/ui/BangButton';
 import { PageHeader } from '../components/layout/PageHeader';
-import { getCharacterArtSrc } from '../shared/data/characters';
+import { getCharacter, getCharacterArtSrc, ROLE_LABELS } from '../game';
 import { getHistoryStats, MOCK_GAME_HISTORY } from '../shared/data/mockGameHistory';
 
 const stats = getHistoryStats(MOCK_GAME_HISTORY);
@@ -58,7 +58,7 @@ export function HistoryPage() {
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
               <img
                 src={getCharacterArtSrc(match.characterId)}
-                alt={match.characterName}
+                alt={getCharacter(match.characterId).name}
                 className="mx-auto h-[180px] w-[130px] shrink-0 rounded-[14px] object-contain shadow-lg lg:mx-0"
                 draggable={false}
               />
@@ -69,10 +69,10 @@ export function HistoryPage() {
                   <time className="text-[17px] text-bang-brown/70">{match.playedAt}</time>
                 </div>
 
-                <h2 className="mt-4 font-title text-[40px] leading-none text-bang-red">{match.characterName}</h2>
+                <h2 className="mt-4 font-title text-[40px] leading-none text-bang-red">{getCharacter(match.characterId).name}</h2>
 
                 <div className="mt-4 flex flex-wrap gap-3 text-[18px] text-bang-brown">
-                  <span className="rounded-full bg-[#f8ebd5] px-4 py-2">Роль: {match.roleLabel}</span>
+                  <span className="rounded-full bg-[#f8ebd5] px-4 py-2">Роль: {ROLE_LABELS[match.role]}</span>
                   <span className="rounded-full bg-[#f8ebd5] px-4 py-2">{match.playersCount} игроков</span>
                   <span className="rounded-full bg-[#f8ebd5] px-4 py-2">{match.durationMinutes} мин</span>
                 </div>

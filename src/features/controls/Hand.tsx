@@ -1,38 +1,40 @@
 import { LayoutGroup, motion } from 'framer-motion';
-import { getVisiblePlayerId } from '../../shared/pendingActions';
-import type { EffectType } from '../../shared/types/game';
-import { useGameStore } from '../../store/useGameStore';
+import { canPlayCard, getActorId, getPlayer, needsTarget } from '../../game';
+import type { Card as CardType, GameState, Player } from '../../game';
+import { useGame, useGameStore } from '../../store/useGameStore';
 import { Card } from '../../entities/card/Card';
-import { canPlayCard } from '../game-logic/cardRules';
 
-const TARGETED_CARD_EFFECTS = new Set<EffectType>(['BANG', 'MISSED', 'PANIC', 'CAT_BALOU', 'JAIL', 'DUEL']);
+type CardAction = 'discard' | 'target' | 'play' | null;
 
+/** Что произойдёт при клике на карту: сброс лишней, выбор цели или розыгрыш. */
+function getCardAction(game: GameState, player: Player, card: CardType): CardAction {
+  if (game.phase === 'DISCARD' && !game.prompt && game.activePlayerId === player.id) return 'discard';
+  if (!canPlayCard(game, player.id, card)) return null;
+  return !game.prompt && needsTarget(player, card) ? 'target' : 'play';
+}
+
+/** Рука игрока, который сейчас за экраном. */
 export function Hand() {
-  const state = useGameStore();
-  const { players, playCard, discardCard } = state;
+  const game = useGame();
+  const { dispatch, targetingCardId, setTargeting } = useGameStore();
+  const player = getPlayer(game, getActorId(game));
 
-  if (state.isTurnTransitionVisible || state.winnerMessage) return null;
+  if (player.hand.length === 0) return null;
 
-  const visiblePlayerId = getVisiblePlayerId(state);
-  const me = players.find((player) => player.id === visiblePlayerId);
-
-  if (!me || me.hand.length === 0) return null;
-
-  const pulseIds = state.drawPulseCardIds;
+  const handleClick = (card: CardType, action: CardAction) => {
+    if (action === 'discard') dispatch({ type: 'DISCARD_CARD', cardId: card.id });
+    if (action === 'target') setTargeting(targetingCardId === card.id ? null : card.id);
+    if (action === 'play') dispatch({ type: 'PLAY_CARD', cardId: card.id });
+  };
 
   return (
     <LayoutGroup id="hand-layout">
-      <div
-        id="bang-hand-anchor"
-        className="fixed bottom-4 left-4 z-50 flex max-w-[min(58vw,720px)] flex-col items-start"
-      >
+      <div id="bang-hand-anchor" className="fixed bottom-4 left-4 z-50 flex max-w-[min(58vw,720px)] flex-col items-start">
         <div
           className="mb-1 rounded-full border border-[#5a3d22]/50 px-3 py-0.5 font-body text-[10px] uppercase tracking-widest text-[#f0e6d2]/80"
-          style={{
-            background: 'linear-gradient(180deg, #6b4a2f 0%, #4a3020 100%)',
-          }}
+          style={{ background: 'linear-gradient(180deg, #6b4a2f 0%, #4a3020 100%)' }}
         >
-          Карты на руке
+          Карты на руке · {player.name}
         </div>
         <div
           className="flex h-52 items-end justify-start rounded-2xl border-2 border-[#5a3d22] py-3 pl-3 pr-10"
@@ -41,22 +43,9 @@ export function Hand() {
             boxShadow: 'inset 0 2px 6px rgba(255,240,210,0.15), 0 8px 28px rgba(0,0,0,0.5)',
           }}
         >
-          {me.hand.map((card, index) => {
-            const isDiscardPhase = state.phase === 'DISCARD_EXCESS' && state.activePlayerId === me.id;
-            const canPlay = isDiscardPhase || canPlayCard(card, me, state);
-            const isTargetingThis = state.targetingCardId === card.id;
-            const isBangDiscardResponse =
-              state.pendingAction?.type === 'RESPOND_TO_INDIANS' ||
-              state.pendingAction?.type === 'RESPOND_TO_DUEL';
-            const isBangMissedResponse = state.pendingAction?.type === 'RESPOND_TO_BANG';
-            const needsTarget =
-              TARGETED_CARD_EFFECTS.has(card.effectType) &&
-              !(
-                (card.effectType === 'BANG' || card.effectType === 'MISSED') &&
-                (isBangDiscardResponse || isBangMissedResponse)
-              );
-
-            const isDrawPulse = pulseIds?.includes(card.id) ?? false;
+          {player.hand.map((card, index) => {
+            const action = getCardAction(game, player, card);
+            const isTargeting = targetingCardId === card.id;
 
             return (
               <motion.div
@@ -65,38 +54,21 @@ export function Hand() {
                 className="transition-all duration-300"
                 style={{
                   marginLeft: index === 0 ? 0 : '-50px',
-                  marginTop: canPlay ? (isTargetingThis ? '-28px' : '0') : '14px',
+                  marginTop: action ? (isTargeting ? '-28px' : '0') : '14px',
                   zIndex: index,
                 }}
-                initial={isDrawPulse ? { opacity: 0, y: 88, scale: 0.88 } : false}
+                initial={{ opacity: 0, y: 88, scale: 0.88 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ type: 'spring', stiffness: 460, damping: 30, mass: 0.65 }}
               >
                 <Card
                   card={card}
                   className={
-                    canPlay
+                    action
                       ? 'cursor-pointer hover:-translate-y-10 hover:shadow-[0_0_30px_rgba(255,200,0,0.5)] hover:z-50'
                       : 'pointer-events-none grayscale-[0.5]'
                   }
-                  onClick={() => {
-                    if (!canPlay) return;
-
-                    if (isDiscardPhase) {
-                      discardCard(card.id);
-                      return;
-                    }
-
-                    if (isTargetingThis) {
-                      state.setTargeting(null);
-                      return;
-                    }
-                    if (needsTarget) {
-                      state.setTargeting(card.id);
-                    } else {
-                      playCard(card.id);
-                    }
-                  }}
+                  onClick={action ? () => handleClick(card, action) : undefined}
                 />
               </motion.div>
             );

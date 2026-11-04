@@ -1,36 +1,24 @@
 import { motion } from 'framer-motion';
-import { useCallback, useMemo, useState } from 'react';
-import { useGameStore } from '../../store/useGameStore';
+import { useCallback, useState } from 'react';
+import { useGame, useGameStore } from '../../store/useGameStore';
 
 export function DeckDrawPile() {
-  const phase = useGameStore((s) => s.phase);
-  const deckLen = useGameStore((s) => s.deck.length);
-  const pending = useGameStore((s) => s.pendingAction);
-  const winner = useGameStore((s) => s.winnerMessage);
-  const overlay = useGameStore((s) => s.isTurnTransitionVisible);
-  const drawTwoFromDeck = useGameStore((s) => s.drawTwoFromDeck);
+  const { phase, deck, prompt } = useGame();
+  const dispatch = useGameStore((store) => store.dispatch);
+  const deckLen = deck.length;
 
   const [cooldown, setCooldown] = useState(false);
 
-  const canDraw = useMemo(
-    () =>
-      phase === 'DRAW' &&
-      pending === null &&
-      winner === null &&
-      !overlay &&
-      deckLen > 0 &&
-      !cooldown,
-    [phase, pending, winner, overlay, deckLen, cooldown],
-  );
-
-  const shouldPulse = phase === 'DRAW' && pending === null && winner === null && !overlay && deckLen > 0;
+  // Колода может быть пуста — тогда при наборе перемешивается сброс
+  const shouldPulse = phase === 'DRAW' && prompt === null;
+  const canDraw = shouldPulse && !cooldown;
 
   const handleClick = useCallback(() => {
     if (!canDraw) return;
     setCooldown(true);
-    drawTwoFromDeck();
+    dispatch({ type: 'DRAW_CARDS' });
     window.setTimeout(() => setCooldown(false), 950);
-  }, [canDraw, drawTwoFromDeck]);
+  }, [canDraw, dispatch]);
 
   return (
     <div className="group relative flex flex-col items-center gap-1">

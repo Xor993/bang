@@ -1,9 +1,10 @@
-import type { Card as CardType, EffectType } from '../../shared/types/game';
-import { getCardArtSrc, getEffectGlyphEmoji } from '../../shared/cardArt';
-import { getSuitSymbol, isRedSuit } from '../../shared/cardUtils';
+import { getSuitSymbol, isRedSuit, isWeapon } from '../../game';
+import type { Card as CardType } from '../../game';
+import { getCardGlyph } from '../../shared/cardArt';
 import { HoverHint } from '../../features/game-ui/tooltip/HoverHint';
 
-const SIMPLE_EFFECTS_WITHOUT_RULE_TEXT = new Set<EffectType>(['BANG', 'MISSED', 'BEER', 'WEAPON']);
+/** Карты, смысл которых понятен по названию, — без плашки с текстом правила. */
+const hasRuleText = (card: CardType) => !['BANG', 'MISSED', 'BEER'].includes(card.kind) && !isWeapon(card);
 
 interface Props {
   card: CardType;
@@ -37,26 +38,10 @@ function FrameNotches({ isBlue }: { isBlue: boolean }) {
   );
 }
 
-function MainIllustration({ effectType, compact }: { effectType: EffectType; compact: boolean }) {
-  const artSrc = getCardArtSrc(effectType);
-  if (artSrc) {
-    return (
-      <div className="relative min-h-0 w-full flex-1">
-        <img
-          src={artSrc}
-          alt=""
-          className="absolute inset-0 h-full w-full object-contain object-center"
-          draggable={false}
-        />
-      </div>
-    );
-  }
-
+function MainIllustration({ card, compact }: { card: CardType; compact: boolean }) {
   return (
     <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-      <span className={`select-none opacity-90 ${compact ? 'text-4xl' : 'text-6xl'}`}>
-        {getEffectGlyphEmoji(effectType)}
-      </span>
+      <span className={`select-none opacity-90 ${compact ? 'text-4xl' : 'text-6xl'}`}>{getCardGlyph(card.kind)}</span>
     </div>
   );
 }
@@ -68,7 +53,7 @@ function RulePanel({
   card: CardType;
   compact: boolean;
 }) {
-  if (SIMPLE_EFFECTS_WITHOUT_RULE_TEXT.has(card.effectType)) return null;
+  if (!hasRuleText(card)) return null;
 
   return (
     <div
@@ -78,7 +63,7 @@ function RulePanel({
       title={card.description}
     >
       <span className={compact ? 'text-xs' : 'text-sm'} aria-hidden>
-        {getEffectGlyphEmoji(card.effectType)}
+        {getCardGlyph(card.kind)}
       </span>
       <span
         style={{
@@ -97,7 +82,7 @@ function RulePanel({
 export function Card({ card, onClick, className = '', compact = false }: Props) {
   const hasRedSuit = isRedSuit(card.suit);
   const isBlue = card.color === 'blue';
-  const hasRulePanel = !SIMPLE_EFFECTS_WITHOUT_RULE_TEXT.has(card.effectType);
+  const hasRulePanel = hasRuleText(card);
 
   const frameClass = isBlue
     ? 'border-[5px] border-sky-600 bg-white'
@@ -135,7 +120,7 @@ export function Card({ card, onClick, className = '', compact = false }: Props) 
           </h3>
 
           <div className={`flex min-h-0 flex-1 ${hasRulePanel ? 'pb-1' : 'pb-0.5'}`}>
-            <MainIllustration effectType={card.effectType} compact={compact} />
+            <MainIllustration card={card} compact={compact} />
           </div>
 
           <RulePanel card={card} compact={compact} />
@@ -146,13 +131,13 @@ export function Card({ card, onClick, className = '', compact = false }: Props) 
                 compact ? 'text-xs' : 'text-sm'
               }`}
             >
-              <span>{card.value}</span>
+              <span>{card.rank}</span>
               <span className={compact ? 'text-[10px]' : 'text-xs'}>{getSuitSymbol(card.suit)}</span>
             </div>
 
-            {SIMPLE_EFFECTS_WITHOUT_RULE_TEXT.has(card.effectType) && (
+            {!hasRulePanel && (
               <span className={`leading-none opacity-75 ${compact ? 'text-sm' : 'text-base'}`} aria-hidden>
-                {getEffectGlyphEmoji(card.effectType)}
+                {getCardGlyph(card.kind)}
               </span>
             )}
           </div>
